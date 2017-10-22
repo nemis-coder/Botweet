@@ -194,17 +194,17 @@ class DatatReader():
 
 def run():
 
-  path = 'shakespeare.txt'
+  path = 'Corpus_Tweets_vicentefoxque.txt'#'shakespeare.txt'
   data = DatatReader(path)
 
   alpha_size  = len(data.alpha)
   rnn_layers_size   = alpha_size * 2
   rnn_layers_num  = 3
   batch_size  = 64
-  seq_size    = 32
+  seq_size    = 148
   train_iters = 500
 
-  text_seed = "the"
+  text_seed = "gran"
   composition_size = 500
 
   with tf.Session() as sess:
