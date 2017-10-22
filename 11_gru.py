@@ -231,6 +231,9 @@ def run():
     print("\nOur Composition:")
     print('<<<%s>>>' % composition)
 
+  save_path = saver.save(sess, "model.ckpt")
+  print("Model saved in file: %s" % save_path)
+    
   return 0
 
 
