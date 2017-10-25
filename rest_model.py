@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 class DatatReader():
 
@@ -33,11 +34,28 @@ text_seed= "mexico "
 with tf.Session() as sess:
     new_saver = tf.train.import_meta_graph('model/my_model.meta')
     new_saver.restore(sess, tf.train.latest_checkpoint('model/'))
-    # print (sess.run('input/X:0'))
-    #my_variable = tf.get_variable("X", [1, 2, 3])
-    composition = []
     graph = tf.get_default_graph()
-    X = tf.get_variable("input/X:0",initializer=tf.constant([[39]]))
+    # print (sess.run('input/X:0'))
+    X = graph.get_tensor_by_name("input/X:0")
+    init_state = graph.get_tensor_by_name("input/init_state:0")
 
-    
-    
+    #composition = []
+    #graph = tf.get_default_graph()
+
+    #init_state = np.zeros([512*3*2])
+
+    feed_dict = {X:[[39]],init_state:[np.zeros([(512*3*2)])]}
+    op_to_restore = graph.get_tensor_by_name("output/YP:0")
+    next_state = graph.get_tensor_by_name("output/next_state:0")
+    YP, state = sess.run(op_to_restore,feed_dict)
+
+    feed_dict = {X:[[39]],init_state:state}
+    YP, state = sess.run(op_to_restore,feed_dict)
+    print(YP, state)
+
+    #print (sess.run(op_to_restore,feed_dict))
+    #pred, pred1h, next_state = sess.run(fetches, feed_dict)
+    #X = tf.get_variable("input/X:0",initializer=tf.constant([[39]]))
+    #op = sess.graph.get_operations()
+    #for m in op:
+     # print (m.values)
