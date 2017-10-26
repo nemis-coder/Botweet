@@ -15,6 +15,16 @@ from tensorflow.contrib import layers
 from tensorflow.contrib import rnn
 
 
+
+import tweepy as tp
+import re
+import pickle as pk
+
+consumer_key = "TM6dANbzBL5LzpXox05KJePwy"
+consumer_secret = "HV3nuTA82M1tjTE2sKTeKPZ8kWDi5r4EgUGE4ogroinPcmfPqe"
+access_key = "921130974569811968-RcDUIosERaFWnHHYw5C6OSq4aAGYdKi"
+access_secret = "AOPClE7TtSHMuO8Jbs4TNhdxfEfPK5s3cbwnJpCE3s2v3"
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
@@ -194,14 +204,13 @@ class DatatReader():
   def encode(self, text):
     return [self.alpha_dict[c] for c in text]
 
+def run(text_seed):
 
-def run():
-
-  path = 'Corpus_Tweets_felipecalderon.txt' #'shakespeare.txt'
+  path = '../corpus_tweets/Corpus_Tweets_felipecalderon.txt' #'shakespeare.txt'
   data = DatatReader(path)
 
   alpha_size  = len(data.alpha)
-  print ("The alpha_size is",alpha_size)
+  #print ("The alpha_size is",alpha_size)
   lstm_size   = 512#alpha_size * 2
   lstm_depth  = 3
   batch_size  = 50
@@ -209,10 +218,10 @@ def run():
   train_iters = 6000
 
   #text_seed = "mexico " #"grandioso dia de compartir ideas y conocer nuevas visiones del mundo"
-  text_seed = "nosotros "
+  #text_seed = "venezuela  "
   #composition_size = 140
-  composition_size = 20
- 
+  composition_size = 140
+  
   
   with tf.Session() as sess:
 
@@ -224,9 +233,9 @@ def run():
     #model.train(data, batch_size, seq_size, train_iters, eval_step=10)  
 
 
-    #saver = tf.train.Saver()
-    #saver.restore(sess, tf.train.latest_checkpoint("model/"))
-    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
+    saver.restore(sess, tf.train.latest_checkpoint("../model/"))
+    #sess.run(tf.global_variables_initializer())
 
     composition = []
     for i, c in enumerate(text_seed):
@@ -244,12 +253,53 @@ def run():
     composition = ''.join(composition)
     print("\nOur Composition:")
     print('<<<%s>>>' % composition)
+    auth = tp.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_key, access_secret)
+    api = tp.API(auth)
+    api.update_status(composition[0:140])
 
   return 0
 
+def get_tweets_seed(nombre):
+    url_ = r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+'
+    has_ = r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)'
+    refe_ = r'(?:@[\w_]+)'
+    dict_stop = pk.load(open("dict_stop.p","rb"))
+    
+    auth = tp.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_key, access_secret)
+    api = tp.API(auth)
+
+    tweets = api.user_timeline(nombre,count=5)
+    texto_sucio = []
+    for tweet in tweets:
+        texto = tweet.text
+        if 'RT @' not in texto:
+            texto_limp = re.sub(url_, '', texto)
+            texto_limp = re.sub(has_, '', texto_limp)
+            texto_limp = re.sub(refe_, '', texto_limp)
+            texto_limp.replace('\n', ' ')
+            texto_to_list = texto_limp.split()
+            texto_sucio.extend(texto_to_list)
+    texto_limpio = [] 
+    for palabra in texto_sucio:
+        if palabra not in dict_stop and (((palabra[0]).lower())+palabra[1:]) not in dict_stop:
+            texto_limpio.append(palabra)
+    return (texto_limpio)
+    
+"""            
+def bot():
+    auth = tp.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_key, access_secret)
+    api = tp.API(auth)
+    #api.update_status("Test")
+    return (semilla)
+"""
 
 def main(args):
-  run()
+  semillas = get_tweets_seed(nombre="Pajaropolitico")
+  semilla = random.choice(semillas)
+  run(semilla.lower())
   return 0
 
 if __name__ == '__main__':
