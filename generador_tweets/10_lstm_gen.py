@@ -14,11 +14,14 @@ import tensorflow as tf
 from tensorflow.contrib import layers
 from tensorflow.contrib import rnn
 
-
+import urllib.request
+import json
 
 import tweepy as tp
 import re
 import pickle as pk
+
+import unicodedata
 
 consumer_key = "TM6dANbzBL5LzpXox05KJePwy"
 consumer_secret = "HV3nuTA82M1tjTE2sKTeKPZ8kWDi5r4EgUGE4ogroinPcmfPqe"
@@ -204,6 +207,21 @@ class DatatReader():
   def encode(self, text):
     return [self.alpha_dict[c] for c in text]
 
+def get_gif(semilla):
+  flag = False
+  f = open('my.gif','wb') 
+  ur = "https://api.giphy.com/v1/gifs/search?api_key=UvWIQAUpscOXqQe8Vioxm701TCROf4Up&q="+semilla+"&limit=5&offset=0&rating=G&lang=es"
+  with urllib.request.urlopen(ur) as url:
+    s = url.read().decode('utf8')
+    data = json.loads(s)
+    #print ((data['data'][0]['images']['fixed_height']['url']))
+    ur= ((data['data'][0]['images']['fixed_height']['url']))
+    if (len(data['data'])>0):
+      flag= True
+    urllib.request.urlretrieve (ur, 'my.gif')
+  f.close()
+  return flag
+  
 def run(text_seed):
 
   path = '../corpus_tweets/Corpus_Tweets_felipecalderon.txt' #'shakespeare.txt'
@@ -253,12 +271,7 @@ def run(text_seed):
     composition = ''.join(composition)
     print("\nOur Composition:")
     print('<<<%s>>>' % composition)
-    auth = tp.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_key, access_secret)
-    api = tp.API(auth)
-    api.update_status(composition[0:140])
-
-  return 0
+  return composition
 
 def get_tweets_seed(nombre):
     url_ = r'http[s]?://(?:[a-z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+'
@@ -297,9 +310,31 @@ def bot():
 """
 
 def main(args):
-  semillas = get_tweets_seed(nombre="Pajaropolitico")
-  semilla = random.choice(semillas)
-  run(semilla.lower())
+  try:
+    semillas = get_tweets_seed(nombre="Pajaropolitico")
+    semilla = random.choice(semillas)
+    semilla = ((unicodedata.normalize('NFKD', semilla).encode('ascii','ignore')).decode("ascii"))
+    print ("semilla",semilla)
+    fl = get_gif(semilla.lower())
+    composition = run(semilla.lower())
+    auth = tp.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_key, access_secret)
+    api = tp.API(auth)
+    r = random.randint(0,1)
+    print (r)
+    if r==1 and fl:
+      api.update_with_media(filename='my.gif',status=composition[0:140])
+    else:
+      api.update_status(composition[0:140])
+  except:
+    print ("Here")
+    semillas = get_tweets_seed(nombre="Pajaropolitico")
+    semilla = random.choice(semillas)
+    composition = run(semilla.lower())
+    auth = tp.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_key, access_secret)
+    api = tp.API(auth)
+    api.update_status(composition[0:140])
   return 0
 
 if __name__ == '__main__':
