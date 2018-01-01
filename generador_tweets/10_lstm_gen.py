@@ -224,7 +224,7 @@ def get_gif(semilla):
   
 def run(text_seed):
 
-  path = '../corpus_tweets/Corpus_Tweets_felipecalderon.txt' #'shakespeare.txt'
+  path = '../corpus_tweets/Corpus_Tweets_vicentefoxque.txt' #'shakespeare.txt'
   data = DatatReader(path)
 
   alpha_size  = len(data.alpha)

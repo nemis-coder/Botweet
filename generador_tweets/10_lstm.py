@@ -206,13 +206,13 @@ def run():
   lstm_depth  = 3
   batch_size  = 50
   seq_size    = 32
-  train_iters = 6000
+  train_iters = 8000
 
   text_seed = "mexico " #"grandioso dia de compartir ideas y conocer nuevas visiones del mundo"
   composition_size = 140
  
-  
-  with tf.Session() as sess:
+  config = tf.ConfigProto(device_count = {'GPU': 0})
+  with tf.Session(config=config) as sess:
 
   
     
